@@ -20,14 +20,6 @@ const api = axios.create({
   }
 })
 
-const apipops = axios.create({
-  baseurl: 'localhost:1236',
-  headers: {
-    'X-Requested-With': 'XMLHttpRequest',
-    'X-Secure-Connection': 'OCBO',
-    'X-Data-Lock': encryptAES('BLDGFix')
-  }
-})
 
 
 // const api = axios.create({
@@ -57,6 +49,7 @@ export default boot(({ app }) => {
   //       so you won't necessarily have to import axios in each vue file
 
   app.config.globalProperties.$api = api
+  // app.config.globalProperties.$apipops = apipops
   // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
   //       so you can easily perform requests against your app's API
 })
