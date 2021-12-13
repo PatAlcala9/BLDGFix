@@ -8,7 +8,7 @@ fastify.register(require('fastify-mysql'), {
 
 fastify.register(require('fastify-cors'), {
   origin: [
-    '*'   // Development
+    'http://localhost:1234'   // Development
   ]
 })
 
