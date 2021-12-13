@@ -140,7 +140,7 @@
 import Ocbo from 'components/Ocbo'
 import { LocalStorage, SessionStorage } from 'quasar'
 import { ref, defineComponent } from 'vue'
-import { api } from "boot/axios"
+import { api, apipops } from "boot/axios"
 import { useRouter } from 'vue-router'
 
 
@@ -637,15 +637,20 @@ export default defineComponent({
     const updateOrderofPayment = async () => {
       await api.put('/api/UpdateOrderofPaymentForReRelease/' + applicationNumber)
     }
+    
 
+    let paid = false
     const checkPaid = async () => {
-      await apipops.get('/api/CheckPaid/' + applicationNumber)
+      await api.get('http://localhost:1236/api/CheckPaid/' + applicationNumber)
         .then((response) => {
           const data = response.data
 
-          if (data) {
-            console.log(data)
+          if (data === true) {
+            paid = true
           }
+        })
+        .then(() => {
+          console.log('paid:', paid)
         })
     }
 
