@@ -1,6 +1,6 @@
 # Building Fix (bldgfix)
 
-A Quasar Framework app
+An Automatic Fix for IIPS Building
 
 ## Install the dependencies
 ```bash
