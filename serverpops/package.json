@@ -1,0 +1,20 @@
+{
+  "name": "serverpops",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Patrick Alvin Alcala",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "dependencies": {
+    "fastify": "^3.24.1",
+    "fastify-cors": "^6.0.2",
+    "fastify-helmet": "^5.3.2",
+    "fastify-mysql": "^2.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
