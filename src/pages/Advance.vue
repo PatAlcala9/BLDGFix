@@ -11,7 +11,7 @@
       </section>
     </div>
 
-    <Ocbo/>
+    <ocbo/>
 
     <section v-if="assessAccess === false" class="column items-center info-area">
       <span class="access-title">Assessment</span>
@@ -316,8 +316,6 @@ export default defineComponent({
       excavationAmount.value = null
       alert.value = false
     }
-
-
 
 
 
@@ -678,6 +676,7 @@ export default defineComponent({
       LocalStorage.remove('Application Number')
       router.push('/', () => {})
     }
+
 
 
     return {
