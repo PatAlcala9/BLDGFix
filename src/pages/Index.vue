@@ -7,7 +7,7 @@
         </section>
       </div>
 
-      <Ocbo/>
+      <ocbo/>
 
       <span class="label">Application Number</span>
       <input 
@@ -58,8 +58,8 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, watch } from "vue"
-import { useStore } from 'vuex'
+import { defineComponent, ref, watch } from "vue"
+// import { useStore } from 'vuex'
 import { api } from "boot/axios";
 import { gsap } from 'gsap/dist/gsap'
 import { useQuasar, QSpinnerHourglass, LocalStorage, SessionStorage } from 'quasar'
@@ -80,7 +80,7 @@ export default defineComponent({
     let buttonText = ref('Scan')
     const quasar = useQuasar()
     const router = useRouter()
-    const $store = useStore()
+    // const $store = useStore()
 
 
 
@@ -132,7 +132,8 @@ export default defineComponent({
 
       if (applicationNo.value.length === 9) {
         quasar.loading.show({
-          spinner: QSpinnerHourglass
+          spinner: QSpinnerHourglass,
+          message: 'Scanning for Errors'
         })
 
         await checkServer()
@@ -140,6 +141,7 @@ export default defineComponent({
           scan()
         } else {
           quasar.loading.hide()
+
           errorsList.value.push('No Connection on Server')
           goodMessage.value = false
         }
@@ -294,6 +296,7 @@ export default defineComponent({
     //     $store.commit('totalarea/updateTotalArea', val)
     //   }
     // })
+
     let globalTotalArea = null
     const getGlobalTotalArea = async () => {
       globalTotalArea = await SessionStorage.getItem('totalarea')
@@ -332,6 +335,7 @@ export default defineComponent({
       SessionStorage.set('bldgfee', val)
     }
 
+    
 
     const checkExisting = async () => {
       await api
