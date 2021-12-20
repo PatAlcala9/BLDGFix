@@ -66,7 +66,7 @@ import { ref } from 'vue'
 import { gsap } from 'gsap/dist/gsap'
 import { api } from "boot/axios"
 import { encrypt } from '../js/OCBO.js'
-import { LocalStorage } from 'quasar'
+import { LocalStorage, useQuasar, QSpinnerHourglass } from 'quasar'
 import { useRouter } from 'vue-router'
 
 export default {
@@ -80,11 +80,17 @@ export default {
     let username = ref(null)
     let password = ref(null)
     const router = useRouter()
+    const quasar = useQuasar()
 
-
+   
 
     let empty = false
     const checkEmpty = async () => {
+      quasar.loading.show({
+        spinner: QSpinnerHourglass,
+        message: 'Authenticating'
+      })
+
       if (username.value === null || username.value.length === 0) {
         empty = true
       } else {
@@ -141,12 +147,18 @@ export default {
       if (dbPassword === ePassword) {
         getEmployeeID()
       } else {
-
+        quasar.loading.hide()
+        //Invalid Password
       }
     }
 
     let employeeid = 0
     const getEmployeeID = async () => {
+      quasar.loading.show({
+        spinner: QSpinnerHourglass,
+        message: `Analysing User's Access`
+      })
+
       await api.get('/api/GetEmployeeID/' + username.value.toUpperCase())
         .then((response) => {
           const data = response.data
@@ -160,6 +172,9 @@ export default {
         })
         .then(() => {
           getAccess()
+        })
+        .then(() => {
+          quasar.loading.hide()
         })
         
     }
