@@ -15,5 +15,5 @@ yarn dev
 
 ### Build the app for production
 ```bash
-yarn spa
+yarn build
 ```
