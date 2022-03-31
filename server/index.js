@@ -284,7 +284,7 @@ fastify.get('/api/:method/:data', async (request, reply) => {
                     reply.send(err || result)
                 }
             )
-        }
+        } 
     }
 })
 
@@ -473,7 +473,7 @@ fastify.delete('/api/:method/:data', async (request, reply) => {
         if (methods === 'RemoveAdminFines') {
 
             client.query(
-                `DELETE FROM building_orderofpayment WHERE bldgApplicationNo = ? and ref_bldgcomputationsheetid = 14`,
+                `DELETE FROM building_orderofpayment WHERE bldgApplicationNo = ? and ref_bldgcomputationsheetid = 14 AND is_paid = 0 AND popstransmitted = 0 AND is_delete = 0`,
                 [request.params.data],
                 
                 function onResult (err, result) {
