@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, watch } from "vue"
+import { defineComponent, ref, watchEffect } from "vue"
 // import { useStore } from 'vuex'
 import { api } from "boot/axios";
 import { gsap } from 'gsap/dist/gsap'
@@ -84,7 +84,7 @@ export default defineComponent({
 
 
 
-    watch(applicationNo, (value, oldvalue) => {
+    watchEffect(applicationNo, (value, oldvalue) => {
       if (value !== oldvalue) {
         buttonText.value = "Scan"
         errorsList.value = []
@@ -151,6 +151,7 @@ export default defineComponent({
         goodMessage.value = false
       }
     }
+    
 
     const scan = async () => {
       await checkExisting()
@@ -200,15 +201,16 @@ export default defineComponent({
 
         await checkAdminFine ()
         if (isAdminFineError === true) {
-          await getAdminFine()
+          errorsList.value.push('Duplicate Admin Fine')
+          goodMessage.value = false
+          buttonText.value = 'Fix'
         }
+        
 
-        if (isNameZero !== '0' &&  fenceError === false) {
+        if (isNameZero !== '0' &&  fenceError === false && isAdminFineError === false) {
           errorsList.value.push(`No Error Detected`)
           goodMessage.value = true
         }
-
-        // getOPOtherDetails()
 
         quasar.loading.hide()
        
@@ -218,6 +220,92 @@ export default defineComponent({
         goodMessage.value = false
       }
     }
+
+
+    //Duplicate Admin Fine
+    //1.Count Admin Fine
+    //2.Get Admin Fine Amount
+    //3.Delete All Admin Fine
+    //4.Add Admin Fine
+
+    let isAdminFineError = false
+
+    const checkAdminFine = async () => {
+      await api.get('/api/CheckAdminFine/' + applicationNo.value )
+        .then((response) => {
+          const data = response.data[0]
+
+          if (data) {
+            isAdminFineError = data.result > 1 ? true : false
+          } else {
+            isAdminFineError = false
+          }
+        })
+        .catch (() => {
+          isAdminFineError = false
+        })
+    }
+
+    let adminFineAmount = 0
+
+    const getAdminFine = async () => {
+      await api.get('/api/GetAdminFine/' + applicationNo.value )
+        .then((response) => {
+          const data = response.data[0]
+
+          if (data) {
+            adminFineAmount = data.result
+          } else {
+            adminFineAmount = 0
+          }
+        })
+        .catch (() => {
+          adminFineAmount = 0
+        })
+    }
+
+    const removeAllAdminFine = async () => {
+      await api.delete('/api/RemoveAdminFines/' + applicationNo.value )
+    }
+
+    let assessedBy = 0
+    let reviewedBy = 0
+    let optn = null
+    const getOPOtherDetails = async () => {
+      await api.get('/api/GetOPOtherDetails/' + applicationNo.value )
+        .then((response) => {
+          const data = response.data[0]
+
+          if (data) {
+            assessedBy = data.resultA
+            reviewedBy = data.resultR
+            optn = data.resultO
+          } else {
+            assessedBy = 0
+            reviewedBy = 0
+            optn = null
+          }
+        })
+        .catch(() => {
+          assessedBy = 0
+          reviewedBy = 0
+          optn = null
+        })
+    }
+
+    const addNewAdminFine = async () => {
+      await api.post('/api/AddNewAdminFine', {
+        app: applicationNo.value,
+        amount: adminFineAmount,
+        assess: assessedBy,
+        review: assessedBy,
+        optn: optn
+      })
+    }
+  
+
+
+
 
 
 
@@ -243,9 +331,18 @@ export default defineComponent({
         await fixFencePayment()
       }
 
+      if (errorsList.value.includes(`Duplicate Admin Fine`)) {
+        await getAdminFine()
+        await removeAllAdminFine()
+        await getOPOtherDetails()
+        await addNewAdminFine()
+      }
+
       errorsList.value = []
-      errorsList.value.push('Fix Complete')
+      errorsList.value.push('Fix Complete for ' + applicationNo.value)
       goodMessage.value = true
+      applicationNo.value = null
+      buttonText.value = "Scan"
     }
 
     const fixNameError = async () => {
@@ -261,6 +358,54 @@ export default defineComponent({
     const fixFencePayment = async () => {
       await api.put('/api/FixFencePayment/' + applicationNo.value)
     }
+
+    // const idList = []
+    // const amountList = []
+
+    // const fixDuplicateAdmin = async () => {
+
+    // }
+
+    // const fixAdminFineGetAmount = async () => {
+    //   await api.get('/api/FixAdminFineGetAmount/' + applicationNo.value)
+    //     .then((response) => {
+    //       const data = response.data
+
+    //       if (data) {
+    //         for (let i = 0; i < data.length; i++) {
+    //           idList.push(data.resultA[i])
+    //           amountList.push(data.resultB[i])
+    //         }
+    //       }
+    //     })
+    // }
+
+    // const fixAdminFineDeleteAdminFine = async () => {
+    //   await api.delete('/api/FixAdminFineDeleteAdminFine/' + applicationNo.value)
+    // }
+
+    // const fixAdminGetOPInfo = async () => {
+    //   await api.get('/api/FixAdminGetOPInfo/' + applicationNo.value)
+    //     .then((response) => {
+    //       const data = response.data
+
+    //       if (data) {
+
+    //       }
+    //     })
+    // }
+
+    // const saveOP = async () => {
+    //   await api.post('/api/SaveOP', {
+    //     app: applicationNumber,
+    //     ref: idList[0],
+    //     amount: amountList[0],
+    //     assess: assessedBy,
+    //     review: reviewedBy,
+    //     optn: optn
+    //   })
+
+    // }
     
 
     
@@ -354,96 +499,10 @@ export default defineComponent({
           receivingID = 0
           setGlobalReceivingID(receivingID)
         })
-    };
-
-
-    //Duplicate Admin Fine
-    //1.Count Admin Fine
-    //2.Get Admin Fine Amount
-    //3.Delete All Admin Fine
-    //4.Add Admin Fine
-
-    let isAdminFineError = false
-
-    const checkAdminFine = async () => {
-      await api.get('/api/CheckAdminFine/' + applicationNo.value )
-        .then((response) => {
-          const data = response.data[0]
-
-          if (data) {
-            isAdminFineError = data.result > 1 ? true : false
-
-            if (isAdminFineError === true) {
-              errorsList.value.push('Duplicate Admin Fine')
-              goodMessage.value = false
-              buttonText.value = 'Fix'
-            }
-            
-          } else {
-            isAdminFineError = false
-          }
-        })
-        .catch (() => {
-          isAdminFineError = false
-        })
     }
 
-    let adminFineAmount = 0
 
-    const getAdminFine = async () => {
-      await api.get('/api/GetAdminFine/' + applicationNo.value )
-        .then((response) => {
-          const data = response.data[0]
-
-          if (data) {
-            adminFineAmount = data.result
-          } else {
-            adminFineAmount = 0
-          }
-        })
-        .catch (() => {
-          adminFineAmount = 0
-        })
-    }
-
-    const removeAllAdminFine = async () => {
-      await api.delete('/api/RemoveAdminFines/' + applicationNo.value )
-    }
-
-    let assessedBy = 0
-    let reviewedBy = 0
-    let optn = null
-    const getOPOtherDetails = async () => {
-      await api.get('/api/GetOPOtherDetails/' + applicationNo.value )
-        .then((response) => {
-          const data = response.data[0]
-
-          if (data) {
-            assessedBy = data.resultA
-            reviewedBy = data.resultR
-            optn = data.resultO
-          } else {
-            assessedBy = 0
-            reviewedBy = 0
-            optn = null
-          }
-        })
-        .catch(() => {
-          assessedBy = 0
-          reviewedBy = 0
-          optn = null
-        })
-    }
-
-    const addNewAdminFine = async () => {
-      await api.post('/api/AddNewAdminFine', {
-        app: applicationNo.value,
-        amount: adminFineAmount,
-        assess: assessedBy,
-        review: assessedBy,
-        optn: optn
-      })
-    }
+    
 
 
 
@@ -643,92 +702,92 @@ export default defineComponent({
       checkButton,
       formatApplication,
       gotoLogin
-    };
-  },
-});
+    }
+  }
+})
 </script>
 
 <style lang="sass" scoped>
-  .logo-section
-    position: absolute
-    top: 0
-    left: 0
-    margin: 2rem
+.logo-section
+  position: absolute
+  top: 0
+  left: 0
+  margin: 2rem
 
-  .logo
-    width: 6.5rem
-    height: auto
+.logo
+  width: 6.5rem
+  height: auto
 
-  .logo-label
-    margin-left: 2rem
-    height: auto
-    text-align: left
-    font-size: 4.1rem
-    font-family: 'WorkSansThin'
-    color: #CDF0EA
+.logo-label
+  margin-left: 2rem
+  height: auto
+  text-align: left
+  font-size: 4.1rem
+  font-family: 'WorkSansThin'
+  color: $text-color
 
-  .label
-    width: 100%
-    text-align: center
-    font-size: 1.6rem
-    font-family: 'WorkSansThin'
-    color: #CDF0EA
+.label
+  width: 100%
+  text-align: center
+  font-size: 1.6rem
+  font-family: 'WorkSansThin'
+  color: $text-color
 
-  .textbox 
-    width: 16rem
-    font-size: 1.6rem
-    margin-top: 0.1rem
-    text-align: center
-    font-family: 'Roboto'
+.textbox 
+  width: 16rem
+  font-size: 1.6rem
+  margin-top: 0.1rem
+  text-align: center
+  font-family: 'Roboto'
 
-  .textbox2
-    margin-top: 2rem
-    width: 16rem
-    font-size: 1.6rem
-    margin-top: 0.1rem
-    text-align: center
-    font-family: 'Roboto'
-    border-radius: 28px
-    border: 1px solid #2d9fd9
-    height: 3.5rem
+.textbox2
+  margin-top: 2rem
+  width: 16rem
+  font-size: 1.6rem
+  margin-top: 0.1rem
+  text-align: center
+  font-family: 'Roboto'
+  border-radius: 28px
+  border: 1px solid #2d9fd9
+  height: 3.5rem
 
-  .textbox2:focus
-    outline: none
-    border: 1px solid #1976D2
-    color: #ffffff
+.textbox2:focus
+  outline: none
+  border: 1px solid #1976D2
+  color: #ffffff
 
-  
 
-  .message-good
-    width: 100%
-    text-align: center
-    color: #CDF0EA
-    font-size: 1.8rem
-    margin-top: 2rem
-    font-family: 'WorkSansThin'
 
-  .message-bad
-    width: 100%
-    text-align: center
-    color: #E99497
-    font-size: 1.8rem
-    margin-top: 2rem
+.message-good
+  width: 100%
+  text-align: center
+  color: $text-color
+  font-size: 1.8rem
+  margin-top: 2rem
+  font-family: 'WorkSansThin'
 
-  .message-bad-detail
-    font-family: 'WorkSansThin'
-    width: 100%
-    text-align: center
-    color: #E99497
-    font-size: 1.8rem
-    margin-top: 0
+.message-bad
+  width: 100%
+  text-align: center
+  color: #E99497
+  font-size: 1.8rem
+  margin-top: 2rem
 
-  .adv-button
-    color: #CDF0EA
-    font-size: 1.2rem
-    margin-top: 1rem
-    font-family: 'WorkSans'
+.message-bad-detail
+  font-family: 'WorkSansThin'
+  width: 100%
+  text-align: center
+  color: #E99497
+  font-size: 1.8rem
+  margin-top: 0
 
-  .mobile
-    font-size: 2rem
+.adv-button
+  color: $text-color
+  font-size: 1.2rem
+  margin-top: 1rem
+  font-family: 'WorkSans'
+
+.mobile
+  font-size: 2rem
 
 </style>
