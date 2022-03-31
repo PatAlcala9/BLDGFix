@@ -15,7 +15,7 @@ const api = axios.create({
   baseurl: '',
   headers: {
     'X-Requested-With': 'XMLHttpRequest',
-    'X-Secure-Connection': 'OCBO',
+    'X-OCBO-SecureConnection': 'ocbo',
     'X-Data-Lock': encryptAES('BLDGFix')
   }
 })
@@ -26,7 +26,7 @@ const api = axios.create({
 //   baseURL: 'https://192.168.7.160/bldgfixserver/',
 //   headers: {
 //     'X-Requested-With': 'XMLHttpRequest',
-//     'X-Secure-Connection': 'OCBO',
+//     'X-OCBO-SecureConnection': 'ocbo',
 //     'X-Data-Lock': encryptAES('BLDGFix')
 //   }
 // })
@@ -35,7 +35,7 @@ const api = axios.create({
 //   baseURL: 'https://192.168.7.160/bldgfixserverpops/',
 //   headers: {
 //     'X-Requested-With': 'XMLHttpRequest',
-//     'X-Secure-Connection': 'OCBO',
+//     'X-OCBO-SecureConnection': 'ocbo',
 //     'X-Data-Lock': encryptAES('BLDGFix')
 //   }
 // })
